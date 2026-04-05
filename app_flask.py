@@ -69,6 +69,10 @@ HTML_TEMPLATE = """
         <div id="result-display" class="result-box" style="display:none;">
             <h3>Outcome Result</h3>
             <div id="result-content"></div>
+            <div id="breakdown" style="margin-top:10px;"></div>
+            <div style="margin-top:15px; padding:10px; background:#e3f2fd; border-radius:6px; text-align:center;">
+                <strong>Overall Reward:</strong> <span id="overall-reward" style="font-size:1.5em; color:#1565c0;">0</span>
+            </div>
         </div>
     </div>
     <div id="map"></div>
@@ -95,6 +99,7 @@ HTML_TEMPLATE = """
         let ambulanceMarker = null;
         let routeLine = null;
         let currentTargetCoords = null;
+        let overallReward = 0;
 
         async function resetEnv() {
             const cond = document.getElementById('condition-selector').value;
@@ -135,12 +140,21 @@ HTML_TEMPLATE = """
                 weight: 5, dashArray: '10, 10'
             }).addTo(map);
 
+            overallReward += parseFloat(data.reward);
             document.getElementById('result-display').style.display = 'block';
             document.getElementById('result-content').innerHTML = `
                 <p><strong>Action:</strong> ${data.action_name}</p>
-                <p><strong>Reward:</strong> ${data.reward}</p>
+                <p><strong>Reward:</strong> <span style="color:${parseFloat(data.reward)>=0?'green':'red'}; font-weight:bold;">${data.reward}</span></p>
                 <p><strong>Time:</strong> ${data.time_taken.toFixed(2)} mins</p>
             `;
+            let bdHtml = '<strong>Breakdown:</strong><br>';
+            data.breakdown.forEach(b => {
+                const color = b[1].startsWith('+') ? 'green' : 'red';
+                bdHtml += `<span style="color:${color}">${b[1]}</span> ${b[0]}<br>`;
+            });
+            document.getElementById('breakdown').innerHTML = bdHtml;
+            document.getElementById('overall-reward').innerText = overallReward;
+            document.getElementById('overall-reward').style.color = overallReward >= 0 ? '#1565c0' : '#d32f2f';
         }
     </script>
 </body>
@@ -206,7 +220,8 @@ def step():
     start_pos = getattr(app, 'current_amb_pos', HOSPITALS[0]['coords'])
     return jsonify({
         "action_name": action_map[action], "reward": f"{reward:.2f}",
-        "time_taken": info['time_taken'], "start_lat": start_pos[0], "start_lng": start_pos[1]
+        "time_taken": info['time_taken'], "start_lat": start_pos[0], "start_lng": start_pos[1],
+        "breakdown": info.get('breakdown', [])
     })
 
 if __name__ == '__main__':
