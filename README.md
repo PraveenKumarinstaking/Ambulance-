@@ -7,121 +7,115 @@ sdk: docker
 pinned: false
 ---
 
-# 🚑 Emergency Ambulance Routing RL Project
+# 🚑 Emergency Ambulance Routing — OpenEnv Mini Environment
 
-A Reinforcement Learning (RL) powered simulation for optimizing emergency ambulance routes. This project demonstrates a Gymnasium-compatible environment where an agent identifies the fastest route to a hospital based on real-time traffic, patient criticality, and distance.
-
----
-
-## 📂 Project Structure
-
-```text
-Emergency Ambulance Routing/
-├── environment.py       # Core Gymnasium RL Environment
-├── app_flask.py         # Advanced Web UI with Map (Flask + Leaflet.js)
-├── demo.py              # CLI-based Environment Demo
-├── requirements.txt     # Project Dependencies
-├── README.md            # Project Documentation
-├── Dockerfile           # Containerization Configuration
-├── .gitignore           # Git Exclusion Rules
-└── docx                 # Original project prompt
-```
+A single-step **OpenEnv / Gymnasium**-compatible RL environment where an agent selects the optimal ambulance route based on traffic, distance, and patient severity.
 
 ---
 
-## 🚀 Key Features
+## 📦 Submission Files
 
-### 1. Reinforcement Learning Environment
-Built using the **Gymnasium** API, the environment simulates a single-step decision process:
-- **Observation Space**: 
-    - `traffic_level`: Low (0), Medium (1), High (2)
-    - `distance`: 1.0 to 20.0 km
-    - `patient_condition`: Normal (0), Critical (1)
-- **Action Space**:
-    - `0`: Take Highway (High speed, traffic-prone)
-    - `1`: Take Shortcut (Low speed, stable)
-    - `2`: Wait (Penalty)
-- **Reward Logic**: 
-    - Heavy penalties for delays in **Critical** cases.
-    - Efficiency bonuses for **Normal** patient transit.
-
-### 2. Interactive Map Visualization
-The Flask web interface (`app_flask.py`) uses **Leaflet.js** to provide:
-- **Live Location Tracking**: View the ambulance position on a real map of London.
-- **Nearest Hospital Search**: Automatically identifies the closest of 4 nearby hospitals.
-- **Visual Status**: Color-coded markers and status pills for easy scenario identification.
-
-### 3. Patient Condition Control
-Users can manually toggle the patient's state between **Normal** and **Critical** to test how the agent's strategy shifts from efficiency to urgency.
+| File | Description |
+|---|---|
+| `environment.py` | Core OpenEnv environment with `reset()` and `step()` |
+| `demo.py` | Demo script — runs one episode and prints results |
+| `requirements.txt` | Python dependencies |
+| `README.md` | This documentation |
+| **Hugging Face Space** | [https://huggingface.co/spaces/pvlove1432/Ambulance-Routing](https://huggingface.co/spaces/pvlove1432/Ambulance-Routing) |
+| **GitHub Repository** | [https://github.com/PraveenKumarinstaking/Ambulance-](https://github.com/PraveenKumarinstaking/Ambulance-) |
 
 ---
 
-## 🛠️ Installation & Setup
+## 🧠 Environment Interface
+
+### Observation Space
+A 3-element vector `[traffic_level, distance, patient_condition]`:
+
+| Index | Field | Type | Range |
+|---|---|---|---|
+| 0 | `traffic_level` | Discrete | 0 = Low, 1 = Medium, 2 = High |
+| 1 | `distance` | Continuous | 1.0 — 20.0 km |
+| 2 | `patient_condition` | Discrete | 0 = Normal, 1 = Critical |
+
+### Action Space
+Discrete(3):
+
+| Action | Meaning |
+|---|---|
+| 0 | Take Highway — fast but traffic-prone |
+| 1 | Take Shortcut — slower but stable |
+| 2 | Wait — always penalized |
+
+### `reset(seed=None)`
+- Randomly initializes `traffic_level`, `distance`, and `patient_condition`.
+- Supports deterministic seeding via the `seed` parameter.
+- Returns `(observation, info)`.
+
+### `step(action)`
+- Executes the chosen route action.
+- Calculates travel time using `estimate_time()`.
+- Returns `(observation, reward, done, truncated, info)`.
+- Episode ends after **one decision** (`done = True`).
+
+### Reward Logic (±10 increments)
+
+| Condition | Reward |
+|---|---|
+| Fast response for Critical patient | **+10** |
+| Delayed Critical response | **-10** |
+| Severe Critical delay | **-20** |
+| Efficient Normal route | **+10** |
+| Slow Normal route | **-10** |
+| Waiting (any case) | **-10** |
+| Optimal Highway (low traffic) | **+10** |
+| Smart Shortcut (high traffic) | **+10** |
+
+### Tool-like Helper Functions
+- `get_traffic_status()` — returns current traffic as a string
+- `estimate_time(route)` — calculates estimated travel time in minutes
+- `send_emergency_alert()` — simulates sending an alert for critical patients
+
+---
+
+## ▶️ How to Run
 
 ### 1. Install Dependencies
-Ensure you have Python 3.10+ installed:
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Run the Simulation
-
-#### **Web Interface (Recommended)**
-Provides map visualization and interactive controls:
-```bash
-python app_flask.py
-```
-*Access at: `http://127.0.0.1:5000`*
-
-#### **Terminal Demo**
-Quick CLI run to verify RL logic:
+### 2. Run the Demo
 ```bash
 python demo.py
 ```
-
----
-
-## 🌐 Deployment
-
-### Hugging Face Spaces (Recommended)
-
-This project is optimized for deployment on [Hugging Face Spaces](https://huggingface.co/spaces) using Docker SDK.
-
-**Steps to deploy:**
-
-1. **Create a new Space** on [huggingface.co/new-space](https://huggingface.co/new-space).
-2. Select **Docker** as the SDK.
-3. Clone your Space repository:
-   ```bash
-   git clone https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME
-   ```
-4. Copy the project files into the Space directory:
-   ```bash
-   cp environment.py app_flask.py requirements.txt Dockerfile YOUR_SPACE_NAME/
-   ```
-5. Push to Hugging Face:
-   ```bash
-   cd YOUR_SPACE_NAME
-   git add .
-   git commit -m "Deploy Ambulance Routing App"
-   git push
-   ```
-6. Your app will be live at:
-   ```
-   https://YOUR_USERNAME-YOUR_SPACE_NAME.hf.space
-   ```
-
-> **Note:** The app binds to port `7860` (Hugging Face default) and host `0.0.0.0`.
-
-### Docker (Local)
-```bash
-docker build -t ambulance-routing .
-docker run -p 7860:7860 ambulance-routing
+**Output:**
 ```
-*Access at: `http://localhost:7860`*
+-----------------------------------------
+Emergency Ambulance Routing Demo
+-----------------------------------------
+Initial State:
+  Traffic Level:      Medium
+  Distance:           12.45 km
+  Patient Condition:  Critical
+-----------------------------------------
+Chosen Action: Take Highway
+Resulting Reward: -10.00
+Estimated Time: 17.81 minutes
+Done Status: True
+-----------------------------------------
+```
+
+### 3. Run the Web Interface (Optional)
+```bash
+python app_flask.py
+```
+Open `http://localhost:7860` in your browser.
 
 ---
 
-## 📜 Repository
-This project is hosted at:
-[https://github.com/PraveenKumarinstaking/Ambulance-](https://github.com/PraveenKumarinstaking/Ambulance-)
+## 🛠️ Tech Stack
+- **Python** — Programming language
+- **Gymnasium / OpenEnv** — RL environment API
+- **NumPy** — Numeric operations
+- **Flask + Leaflet.js** — Web UI with map (optional)
+- **Docker** — Containerization for Hugging Face Spaces
