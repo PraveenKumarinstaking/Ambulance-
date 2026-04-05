@@ -1,3 +1,12 @@
+---
+title: Ambulance Routing
+emoji: 🚑
+colorFrom: red
+colorTo: blue
+sdk: docker
+pinned: false
+---
+
 # 🚑 Emergency Ambulance Routing RL Project
 
 A Reinforcement Learning (RL) powered simulation for optimizing emergency ambulance routes. This project demonstrates a Gymnasium-compatible environment where an agent identifies the fastest route to a hospital based on real-time traffic, patient criticality, and distance.
