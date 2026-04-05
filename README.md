@@ -73,9 +73,43 @@ python demo.py
 ---
 
 ## 🌐 Deployment
-The project is ready for deployment via:
-- **Docker**: Build and run the `Dockerfile` for containerized hosting.
-- **Hugging Face Spaces**: Optimized for hosting as a Python/Gradio or Flask space.
+
+### Hugging Face Spaces (Recommended)
+
+This project is optimized for deployment on [Hugging Face Spaces](https://huggingface.co/spaces) using Docker SDK.
+
+**Steps to deploy:**
+
+1. **Create a new Space** on [huggingface.co/new-space](https://huggingface.co/new-space).
+2. Select **Docker** as the SDK.
+3. Clone your Space repository:
+   ```bash
+   git clone https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME
+   ```
+4. Copy the project files into the Space directory:
+   ```bash
+   cp environment.py app_flask.py requirements.txt Dockerfile YOUR_SPACE_NAME/
+   ```
+5. Push to Hugging Face:
+   ```bash
+   cd YOUR_SPACE_NAME
+   git add .
+   git commit -m "Deploy Ambulance Routing App"
+   git push
+   ```
+6. Your app will be live at:
+   ```
+   https://YOUR_USERNAME-YOUR_SPACE_NAME.hf.space
+   ```
+
+> **Note:** The app binds to port `7860` (Hugging Face default) and host `0.0.0.0`.
+
+### Docker (Local)
+```bash
+docker build -t ambulance-routing .
+docker run -p 7860:7860 ambulance-routing
+```
+*Access at: `http://localhost:7860`*
 
 ---
 
