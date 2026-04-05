@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.env
+.venv
+env/
+venv/
+*.log
+trace.txt
+.gemini/
+.agents/
+brain/
+node_modules/
+dist/
+build/
+.DS_Store
+Thumbs.db

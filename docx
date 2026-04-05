@@ -1,0 +1,57 @@
+Antigravity / Build Prompt
+Build a Mini OpenEnv environment called Emergency Ambulance Routing.
+
+Goal
+Create a single-step RL environment where an agent selects the best ambulance route during an emergency based on traffic, distance, and patient severity.
+
+Requirements
+Use a Gymnasium/OpenEnv-style API
+Implement:
+reset()
+step(action)
+render() optional
+Observation should include:
+traffic_level ( low , medium , high )
+distance_to_hospital (numeric)
+patient_condition ( normal , critical )
+Action space should include:
+take_highway
+take_shortcut
+wait
+Tool-like functions
+Simulate these helper functions:
+
+get_traffic_status()
+estimate_time(route)
+send_emergency_alert()
+Reward logic
+Correct fast route for critical case: positive reward
+Delay in critical case: strong negative reward
+Wrong route choice: penalty
+Efficient and safe routing: bonus reward
+Episode rules
+Each episode ends after one decision
+Include a deterministic or seedable reset option
+Provide a demo script that runs one episode and prints:
+initial state
+chosen action
+reward
+done status
+Tech Stack
+Programming Language: Python
+Environment API: Gymnasium / OpenEnv-style
+Libraries: NumPy
+Version Control: GitHub
+Deployment: Hugging Face Spaces
+Containerization: Docker
+Optional UI: Gradio
+Deliverables
+environment.py
+demo.py
+requirements.txt
+README.md
+Hugging Face Spaces deployment
+Important
+Make the environment realistic, easy to run, and clearly documented. The code should be simple enough to evaluate, but structured enough to show proper environment design.
+
+If you want, I can also make this into a shorter antigravity prompt that is more direct for developers.
