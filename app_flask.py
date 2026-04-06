@@ -1,10 +1,12 @@
 from flask import Flask, render_template_string, request, jsonify
+from flask_cors import CORS
 import numpy as np
 import math
 import random
 from environment import AmbulanceRoutingEnv
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 env = AmbulanceRoutingEnv()
 
 # Mock Hospital Locations (London Area)
@@ -164,17 +166,26 @@ HTML_TEMPLATE = """
 def get_distance(p1, p2):
     return math.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
     return render_template_string(HTML_TEMPLATE, hospitals=HOSPITALS)
 
-@app.route('/reset')
+@app.route('/reset', methods=['GET', 'POST'])
 def reset():
-    # Pass condition if provided
-    cond_param = request.args.get('condition', 'random')
+    # Pass condition if provided (GET query or POST JSON)
+    cond_param = 'random'
+    seed = None
+    if request.method == 'POST':
+        data = request.get_json(silent=True) or {}
+        cond_param = data.get('condition', 'random')
+        seed = data.get('seed')
+    else:
+        cond_param = request.args.get('condition', 'random')
+        seed = request.args.get('seed')
+        if seed is not None: seed = int(seed)
     
     # Gym Reset
-    state, _ = env.reset()
+    state, _ = env.reset(seed=seed)
     
     # Override condition if specified
     if cond_param == 'normal':
@@ -202,6 +213,13 @@ def reset():
     app.current_target = nearest_h
 
     return jsonify({
+        "observation": env.state.tolist(),
+        "info": {
+            "traffic": traffic_map[int(env.state[0])],
+            "distance": f"{dist_to_nearest:.2f}",
+            "condition": condition_map[int(env.state[2])],
+            "target_name": nearest_h['name']
+        },
         "traffic": traffic_map[int(env.state[0])],
         "distance": f"{dist_to_nearest:.2f}",
         "condition": condition_map[int(env.state[2])],
@@ -211,15 +229,41 @@ def reset():
         "target_coords": nearest_h['coords']
     })
 
-@app.route('/step', methods=['POST'])
+@app.route('/state', methods=['GET', 'POST'])
+def state():
+    if env.state is None:
+        return jsonify({"error": "Environment not initialized"}), 400
+    
+    traffic_map = {0: "Low", 1: "Medium", 2: "High"}
+    condition_map = {0: "Normal", 1: "Critical"}
+    
+    return jsonify({
+        "observation": env.state.tolist(),
+        "info": {
+            "traffic": traffic_map.get(int(env.state[0]), "Unknown"),
+            "distance": f"{float(env.state[1]):.2f}",
+            "condition": condition_map.get(int(env.state[2]), "Unknown")
+        },
+        "traffic": traffic_map.get(int(env.state[0]), "Unknown"),
+        "distance": f"{float(env.state[1]):.2f}",
+        "condition": condition_map.get(int(env.state[2]), "Unknown"),
+        "raw_state": env.state.tolist()
+    })
+
+@app.route('/step', methods=['GET', 'POST'])
 def step():
-    data = request.json
+    data = request.get_json(silent=True) or {}
     action = data.get('action', 0)
     state, reward, done, truncated, info = env.step(action)
     action_map = {0: "Take Highway", 1: "Take Shortcut", 2: "Wait"}
     start_pos = getattr(app, 'current_amb_pos', HOSPITALS[0]['coords'])
     return jsonify({
-        "action_name": action_map[action], "reward": f"{reward:.2f}",
+        "observation": state.tolist(),
+        "reward": float(reward),
+        "done": done,
+        "truncated": truncated,
+        "info": info,
+        "action_name": action_map[action], 
         "time_taken": info['time_taken'], "start_lat": start_pos[0], "start_lng": start_pos[1],
         "breakdown": info.get('breakdown', [])
     })

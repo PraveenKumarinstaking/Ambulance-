@@ -18,9 +18,11 @@ A single-step **OpenEnv / Gymnasium**-compatible RL environment where an agent s
 | File | Description |
 |---|---|
 | `environment.py` | Core OpenEnv environment with `reset()` and `step()` |
-| `demo.py` | Demo script — runs one episode and prints results |
-| `requirements.txt` | Python dependencies |
-| `README.md` | This documentation |
+| `app_flask.py` | Flask-based REST API for OpenEnv (port 7860) |
+| `inference.py` | LLM-based agent script for automated evaluation |
+| `openenv.yaml` | Environment configuration for OpenEnv platform |
+| `requirements.txt` | Python dependencies (including `openai`, `requests`) |
+| `Dockerfile` | Container configuration for Hugging Face Spaces |
 | **Hugging Face Space** | [https://huggingface.co/spaces/pvlove1432/Ambulance-Routing](https://huggingface.co/spaces/pvlove1432/Ambulance-Routing) |
 | **GitHub Repository** | [https://github.com/PraveenKumarinstaking/Ambulance-](https://github.com/PraveenKumarinstaking/Ambulance-) |
 
@@ -105,11 +107,22 @@ Done Status: True
 -----------------------------------------
 ```
 
-### 3. Run the Web Interface (Optional)
+### 3. Run the Web Interface
 ```bash
 python app_flask.py
 ```
-Open `http://localhost:7860` in your browser.
+Open `http://localhost:7860` in your browser. This provides both the interactive UI and the REST API (`/reset`, `/step`, `/state`).
+
+### 4. Run the Inference Script (Evaluation)
+```bash
+# Set environment variables first
+export API_BASE_URL="your_api_url"
+export MODEL_NAME="your_model_name"
+export HF_TOKEN="your_hf_token"
+
+python inference.py
+```
+This runs the LLM-based agent and emits structured logs in `[START]`, `[STEP]`, `[END]` format.
 
 ---
 

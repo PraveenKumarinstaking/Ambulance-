@@ -1,0 +1,30 @@
+version: "1.0"
+name: "Ambulance Routing"
+description: "RL environment for emergency ambulance routing optimization."
+
+environment:
+  dockerfile: "Dockerfile"
+  entrypoint: "python app_flask.py"
+  port: 7860
+
+spec:
+  observation_space:
+    type: "box"
+    low: [0, 1.0, 0]
+    high: [2, 50.0, 1]
+    shape: [3]
+    dtype: "float32"
+  action_space:
+    type: "discrete"
+    n: 3
+
+tasks:
+  - id: "low_traffic_normal"
+    description: "Navigate to hospital in low traffic with a normal patient condition."
+    condition: "normal"
+  - id: "high_traffic_critical"
+    description: "Navigate to hospital in high traffic with a critical patient condition."
+    condition: "critical"
+  - id: "random_scenario"
+    description: "Navigate to hospital in a random scenario."
+    condition: "random"
